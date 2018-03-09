@@ -1196,6 +1196,7 @@ void aciScreenDispatcher::SetResource(int obj_id,int res_id,int fr)
 		obj -> curFrame = fr;
 		res -> flags |= ACS_NO_FLUSH;
 		acsGetResourceSize(res,obj -> PosX,obj -> PosY,obj -> SizeX,obj -> SizeY);
+		obj->PosX += 500;
 	}
 	else
 		ErrH.Abort("SetResource() failed...");
