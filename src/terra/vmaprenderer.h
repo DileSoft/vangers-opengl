@@ -108,6 +108,7 @@ private:
 	std::shared_ptr<gl::Texture> paletteTexture;
 	std::shared_ptr<gl::Texture> colorTexture;
 	std::shared_ptr<gl::Texture> heightTexture;
+	std::shared_ptr<gl::Texture> metaTexture;
 public:
 	enum ShaderType {
 		RayCast, BilinearFiltering
@@ -128,6 +129,8 @@ public:
 	void setDirty(int y);
 	void setDirty(int yStart, int yEnd);
 	void updateColor(uint8_t **color, int lineUp, int lineDown);
+	void updateHeight(uint8_t **color, int lineUp, int lineDown);
+	void updateMeta(uint8_t **color, int lineUp, int lineDown);
 };
 
 

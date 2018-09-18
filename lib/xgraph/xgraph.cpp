@@ -193,7 +193,7 @@ int XGR_Screen::init(int x,int y,int flags_in)
 //			ErrH.Abort(SDL_GetError(),XERR_USER, 0);
 //		}
 	} else {
-		sdlWindow = SDL_CreateWindow("Vangers", 0, 0, x, y, SDL_WINDOW_OPENGL);
+		sdlWindow = SDL_CreateWindow("Vangers", 0, 10, x, y, SDL_WINDOW_OPENGL);
 //		sdlRenderer = SDL_CreateRenderer(sdlWindow, 0, 0);
 //		if (SDL_CreateWindowAndRenderer(x, y, SDL_WINDOW_OPENGL, &sdlWindow, &sdlRenderer) < 0) {
 //			std::cout<<"ERROR2"<<std::endl;

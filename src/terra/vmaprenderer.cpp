@@ -47,6 +47,7 @@ void VMapRenderer::init(const std::shared_ptr<gl::Texture> &heightMapTexture,
 	this->colorTexture = colorTexture;
 	this->paletteTexture = paletteTexture;
 	this->heightTexture = heightMapTexture;
+	this->metaTexture = metaTexture;
 }
 
 void
@@ -96,6 +97,70 @@ void VMapRenderer::updateColor(uint8_t **color, int lineUp, int lineDown) {
 			}
 
 			colorTexture->update(0, yStart, sizeX, DIRTY_REGION_CHUNK_SIZE, buffer);
+		}
+	}
+
+	delete[] buffer;
+}
+
+void VMapRenderer::updateHeight(uint8_t **color, int lineUp, int lineDown) {
+	if(lineUp <= lineDown){
+		setDirty(lineUp, lineDown);
+	}else{
+		setDirty(0, lineDown);
+		setDirty(lineUp, sizeY - 1);
+	}
+
+	int bufferSize = DIRTY_REGION_CHUNK_SIZE * sizeX;
+	uint8_t* buffer = new uint8_t[bufferSize];
+
+	for(int nRegion = 0; nRegion < dirtyRegions.size(); nRegion++){
+		if(dirtyRegions[nRegion]){
+			int yStart = nRegion * DIRTY_REGION_CHUNK_SIZE;
+			int yEnd = (nRegion + 1) * DIRTY_REGION_CHUNK_SIZE;
+
+			for(int i = yStart; i < yEnd; i++){
+				uint8_t* lineBuffer = buffer + ((i - yStart) * sizeX);
+				if(color[i]){
+					memcpy(lineBuffer, color[i], sizeX * sizeof(uint8_t));
+				}else{
+					memset(lineBuffer, 0, sizeX * sizeof(uint8_t));
+				}
+			}
+
+			heightTexture->update(0, yStart, sizeX, DIRTY_REGION_CHUNK_SIZE, buffer);
+		}
+	}
+
+	delete[] buffer;
+}
+
+void VMapRenderer::updateMeta(uint8_t **color, int lineUp, int lineDown) {
+	if(lineUp <= lineDown){
+		setDirty(lineUp, lineDown);
+	}else{
+		setDirty(0, lineDown);
+		setDirty(lineUp, sizeY - 1);
+	}
+
+	int bufferSize = DIRTY_REGION_CHUNK_SIZE * sizeX;
+	uint8_t* buffer = new uint8_t[bufferSize];
+
+	for(int nRegion = 0; nRegion < dirtyRegions.size(); nRegion++){
+		if(dirtyRegions[nRegion]){
+			int yStart = nRegion * DIRTY_REGION_CHUNK_SIZE;
+			int yEnd = (nRegion + 1) * DIRTY_REGION_CHUNK_SIZE;
+
+			for(int i = yStart; i < yEnd; i++){
+				uint8_t* lineBuffer = buffer + ((i - yStart) * sizeX);
+				if(color[i]){
+					memcpy(lineBuffer, color[i], sizeX * sizeof(uint8_t));
+				}else{
+					memset(lineBuffer, 0, sizeX * sizeof(uint8_t));
+				}
+			}
+
+			metaTexture->update(0, yStart, sizeX, DIRTY_REGION_CHUNK_SIZE, buffer);
 		}
 	}
 

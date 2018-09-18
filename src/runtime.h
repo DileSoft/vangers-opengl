@@ -1,10 +1,11 @@
 //TODO: stalkerg need timers kill!!!
 //const int  RTO_GAME_QUANT_TIMER	= 1000/20;
-const int  RTO_GAME_QUANT_TIMER	= 1000/20;
-const int  RTO_ISCREEN_TIMER 	= 1000/20;
-const int  RTO_PALETTE_TIMER 	= 1000/20;
-const int  RTO_ESCAVE_GATE_TIMER	= 1000/20;
-const int  RTO_IMAGE_TIMER		= 1000/20;
+const int RTO_GLOBAL_TICK = 30;
+const int  RTO_GAME_QUANT_TIMER	= 1000/RTO_GLOBAL_TICK;
+const int  RTO_ISCREEN_TIMER 	= 1000/RTO_GLOBAL_TICK;
+const int  RTO_PALETTE_TIMER 	= 1000/RTO_GLOBAL_TICK;
+const int  RTO_ESCAVE_GATE_TIMER	= 1000/RTO_GLOBAL_TICK;
+const int  RTO_IMAGE_TIMER		= 1000/RTO_GLOBAL_TICK;
 
 // Runtime objects...
 enum RoadRuntimeObjID

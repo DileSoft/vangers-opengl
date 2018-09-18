@@ -19,3 +19,4 @@ lib/utils/zip_convert
 src/vangers
 
 # TODO: VC stuff, windows binaries
+/build

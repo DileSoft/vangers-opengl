@@ -32,7 +32,7 @@ struct Surface {
 	float low_alt, high_alt, delta;
 	uint low_type, high_type;
 	vec3 tex_coord;
-//	bool is_shadowed;
+	bool is_shadowed;
 };
 
 struct CastPoint {
@@ -40,7 +40,7 @@ struct CastPoint {
 	uint type;
 	vec3 tex_coord;
 	bool is_underground;
-//	bool is_shadowed;
+	bool is_shadowed;
 };
 
 
@@ -70,7 +70,7 @@ Surface get_surface(vec2 pos) {
 	Surface suf;
 	suf.tex_coord = tc;
 	uint meta = texture(t_Meta, tc).x;
-//	suf.is_shadowed = (meta & c_ShadowMask) != 0U;
+	suf.is_shadowed = (meta & c_ShadowMask) != 0U;
 	suf.low_type = get_terrain_type(meta);
 	if ((meta & c_DoubleLevelMask) != 0U) {
 		//TODO: we need either low or high for the most part
@@ -157,18 +157,25 @@ Surface cast_ray_impl(
 
 
 
-vec4 evaluate_color(vec3 tex_coord) {
-	vec3 tl = palColor(textureOffset(t_Color, tex_coord, ivec2(-1, 0)));
-	vec3 tr = palColor(textureOffset(t_Color, tex_coord, ivec2(0, 0)));
-	vec3 bl = palColor(textureOffset(t_Color, tex_coord, ivec2(-1, 1)));
-	vec3 br = palColor(textureOffset(t_Color, tex_coord, ivec2(0, 1)));
-	vec2 f = fract( vec2(tex_coord.x * u_TextureScale.x, tex_coord.y * u_TextureScale.y));
+vec4 evaluate_color(CastPoint pt) {
+    float terrain = float(pt.type) + 0.5;
+	terrain = 1/terrain;
+	if (pt.is_shadowed)
+	{
+		terrain-=0.1;
+	}
+	return vec4(terrain, 0, 0, 1);
+    float diff =
+        textureOffset(t_Meta, pt.tex_coord, ivec2(1, 0)).x
+        - textureOffset(t_Meta, pt.tex_coord, ivec2(-1, 0)).x;
+    float light_clr =
+        texture(t_Color, vec3(0.5 * diff + 0.5, 0.25, terrain)).x;
+    float tmp =
+        light_clr - c_HorFactor * (1.0 - pt.pos.z / u_TextureScale.z);
+    float color_id =
+        texture(t_Color, vec3(0.5 * tmp + 0.5, 0.75, terrain)).x;
 
-	vec3 top_color = mix(tl, tr, f.x);
-	vec3 bottom_color = mix(bl, br, f.x);
-	vec3 color = mix(top_color, bottom_color, f.y);
-
-	return vec4(color, 1);
+    return texture(t_Palette, color_id);
 }
 
 CastPoint cast_ray_to_map(vec3 base, vec3 dir) {
@@ -180,11 +187,12 @@ CastPoint cast_ray_to_map(vec3 base, vec3 dir) {
 	result.type = suf.high_type;
 	result.is_underground = false;
 	if (suf.delta > 0.0 && b.z < suf.low_alt + suf.delta) {
+		result.type = suf.low_type;
 		if (b.z >= suf.low_alt)
 		{
 			// continue the cast underground
 			a = b; b = c;
-			suf = cast_ray_impl(a, b, false, 3, 3);
+			suf = cast_ray_impl(a, b, false, 7, 7);
 		}
 		if (suf.delta > 0.0)
 		{
@@ -192,7 +200,7 @@ CastPoint cast_ray_to_map(vec3 base, vec3 dir) {
 		}
 	}
 	
-
+	result.is_shadowed = suf.is_shadowed;
 	//float t = a.z > a.w + 0.1 ? (b.w - a.w - b.z + a.z) / (a.z - a.w) : 0.5;
 	result.pos = b;
 	result.tex_coord = suf.tex_coord;
@@ -209,16 +217,17 @@ void main() {
 	float metab = (meta & c_DoubleLevelMask) != 0U ? 0.0f : 0.0f;
 
 	vec4 metac = vec4(metab, metab, 0, 1.0f);
-	vec4 col = evaluate_color(pt.tex_coord);
+	vec4 col = evaluate_color(pt);
 //	vec4 col = evaluate_color(UV);
 
 	col = mix(col, metac, metab);
 
 	if (pt.is_underground)
 	{
-		col = vec4(0.0, 0.0, 0.0, 0.0);
+		//col = vec4(0.0, 0.0, 0.0, 0.0);
 	}
 
+	col = evaluate_color(pt);
 	Target0 = vec4(col);
 
 	if (pt.type == TERRAIN_WATER) {
@@ -234,7 +243,7 @@ void main() {
 			other.pos = b;
 			other.type = suf.high_type;
 			other.tex_coord = suf.tex_coord;
-			Target0 += c_ReflectionPower * evaluate_color(other.tex_coord);
+			Target0 += c_ReflectionPower * evaluate_color(other);
 		}else {
 		}
 	}
