@@ -186,7 +186,7 @@ CastPoint cast_ray_to_map(vec3 base, vec3 dir) {
 			a = b; b = c;
 			suf = cast_ray_impl(a, b, false, 3, 3);
 		}
-		if (suf.delta > 0.0)
+		if (suf.delta > 0.0 && suf.low_alt < suf.high_alt)
 		{
 			result.is_underground = true;
 		}
